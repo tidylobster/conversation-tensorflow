@@ -7,7 +7,7 @@ from model import Conversation
 from hbconfig import Config
 
 
-def _get_vocab_tensor(table_type, vocab_filename="data/tiny_processed_data/vocab"):
+def get_vocab(table_type, vocab_filename="data/tiny_processed_data/vocab"):
     if not isinstance(table_type, str) and table_type not in ("index", "string"):
         raise KeyError("table_type is not supported")
 
@@ -33,8 +33,8 @@ class ExportConversationWithConversion(Conversation):
         self.padding = tf.constant([[0, 0], [0, Config.data.max_seq_length]])
 
         self.loss, self.train_op, self.metrics, self.predictions = None, None, None, None
-        self.index_table = _get_vocab_tensor(table_type="index")
-        self.string_table = _get_vocab_tensor(table_type="string")
+        self.index_table = get_vocab(table_type="index")
+        self.string_table = get_vocab(table_type="string")
 
         self._init_placeholder(features, labels)
         self.build_graph()
@@ -83,50 +83,22 @@ class ExportConversationWithConversion(Conversation):
             self.decoder_inputs = None
 
 
-# class ExportConversation(Conversation):
-
-#     def model_fn(self, mode, features, labels, params):
-#         self.dtype = tf.float32
-#         self.mode = mode
-#         self.padding = tf.constant([[0, 0], [0, Config.data.max_seq_length]])
-
-#         self.loss, self.train_op, self.metrics, self.predictions = None, None, None, None
-#         self.index_table = _get_vocab_tensor(table_type="index")
-#         self.string_table = _get_vocab_tensor(table_type="string")
-
-#         self._init_placeholder(features, labels)
-#         self.build_graph()
-
-#         return tf.estimator.EstimatorSpec(
-#             mode=mode,
-#             export_outputs={"serving_default": tf.estimator.export.PredictOutput(
-#                 tf.placeholder(dtype=tf.int32, shape=(None, Config.da)))},
-#             loss=self.loss,
-#             train_op=self.train_op,
-#             eval_metric_ops=self.metrics,
-#             predictions={"prediction": self.predictions})
-
-#     def _init_placeholder(self, features, labels):
-#         self.encoder_inputs = features
-#         if type(features) == dict:
-#             self.encoder_inputs = features["input_data"]
-
-#         batch_size = tf.shape(self.encoder_inputs)[0]
-#         if self.mode == tf.estimator.ModeKeys.TRAIN or self.mode == tf.estimator.ModeKeys.EVAL:
-#             self.decoder_inputs = labels
-#             decoder_input_shift_1 = tf.slice(self.decoder_inputs, [0, 1],
-#                     [batch_size, Config.data.max_seq_length-1])
-#             pad_tokens = tf.zeros([batch_size, 1], dtype=tf.int32)
-
-#             # make target (right shift 1 from decoder_inputs)
-#             self.targets = tf.concat([decoder_input_shift_1, pad_tokens], axis=1)
-#         else:
-#             self.decoder_inputs = None
-
-
 if __name__ == '__main__':
+    # define, which configs to load
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--config', type=str, default='config', help='config file name')
+    args = parser.parse_args()
+    tf.logging.set_verbosity(logging.INFO)
+
+    # print Config setting
+    Config(args.config)
+    print("Config: ", Config)
+    if Config.get("description", None):
+        print("Config Description")
+        for key, value in Config.description.items():
+            print(f" - {key}: {value}")
+
     # initialize configs
-    Config("check_tiny")
     Config.train.batch_size = 1
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
     tf.logging.set_verbosity(tf.logging.ERROR)
