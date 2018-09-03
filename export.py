@@ -1,5 +1,6 @@
 import os 
 import argparse
+import logging
 import data_loader 
 import tensorflow as tf
 import numpy as np
