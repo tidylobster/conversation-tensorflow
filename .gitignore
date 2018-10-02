@@ -2,3 +2,5 @@ __pycache__/
 logs/
 processed_cornell_movie_dialogs_data/
 data/
+*.hs/
+my_model/
