@@ -8,9 +8,9 @@ import os
 nltk.data.path = ["/model/files/nltk_data"] + nltk.data.path
 
 
-def tokenize(y):
-	sentences = np.array(y.string_val)
-	sentences = sentences.reshape([dim.size for dim in y.tensor_shape.dim])
+def tokenize(x):
+	sentences = np.array(x.string_val)
+	sentences = sentences.reshape([dim.size for dim in x.tensor_shape.dim])
 
 	tokenized = np.copy(sentences)
 	for index, sentence in enumerate(sentences):
